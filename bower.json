@@ -1,0 +1,21 @@
+{
+  "name": "makehtml",
+  "version": "0.1",
+  "authors": [
+    "Andrew Davis <andrew4d3@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.4"
+  },
+  "devDependencies": {
+    "components-font-awesome": "~4.3.0"
+  }
+}
