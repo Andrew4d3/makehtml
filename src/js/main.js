@@ -1,2 +1,3 @@
-
-console.log("hello world4");
+/* Your scripts here... */
+/* Feel free to delete the following line... */
+console.log("App running...");

@@ -1,6 +1,6 @@
 {
   "name": "makehtml",
-  "version": "0.1",
+  "version": "1.0",
   "authors": [
     "Andrew Davis <andrew4d3@gmail.com>"
   ],
@@ -13,7 +13,22 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "~3.3.4"
+    "bootstrap": "~3.3.4",
+    "normalize-css": "~4.1.1",
+    "font-awesome": "~4.6.3"
+  },
+    "overrides": {
+      "font-awesome": {
+          "main": [
+              "css/font-awesome.css",
+              "fonts/*"
+          ]
+      },
+      "bootstrap": {
+         "dependencies": {
+            "normalize-css": "*"
+         }
+      }
   },
   "devDependencies": {
     "components-font-awesome": "~4.3.0"

@@ -1,143 +1,176 @@
 var gulp = require('gulp');
-var fileinclude = require('gulp-file-include');
-var less = require('gulp-less');
-var webserver = require('gulp-webserver');
+var gp = require("gulp-load-plugins")({lazy:true});
+var browserSync = require('browser-sync').create();
+var wiredep = require('wiredep').stream;
 var del = require('del');
-var sourcemaps = require('gulp-sourcemaps');
-var browserSync = require("browser-sync").create();
-var clean = require('gulp-clean');
-var plumber = require('gulp-plumber');
+var path = require('path');
+var runSequence = require('run-sequence');
+var yargs = require('yargs').argv;
 
-gulp.task('default', ['js','images','fonts','css','less','pages','watch']);
+var folders = {
+	src : "./src",
+	bower: "./bower_components",
+	less: "./src/styles/**/*.less",
+	html: ["./src/**/*.html", "!./src/+(pages|templates)/**/*.html"]
+};
 
-var paths = {
-	js: 'src/js/**/*.js',
-	assets: ['src/img/**/*','src/css/**/*','src/fonts/**/*'],
-	pages: 'src/*.html',
-	less: 'src/styles/less/**/*.less'
+var tasksDefault = [
+	"inject",
+	"styles",
+	"watch"
+];
+
+if(yargs.templates){
+	tasksDefault.unshift("pages");
+	gulp.task("default",function(){
+		runSequence.apply({},tasksDefault);
+	});
+}
+else{
+	gulp.task("default", tasksDefault);
 }
 
-// Moving al your JS files to your server folder
-gulp.task('js', function(){
-
-	del('dist/js/**/*',function(){
-		gulp.src('src/js/**/*.js')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/js/'));
-
-		// Jquery Library
-		gulp.src('bower_components/jquery/dist/*.min.js')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/js/vendor/'));
-
-		//Bootstrap Library
-		gulp.src('bower_components/bootstrap/dist/js/bootstrap.min.js')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/js/vendor/'));
-	});
-
-});
-
-// Moving your images to your server folder
-gulp.task('images', function(){
-
-	del('dist/img/**/*',function(){
-		gulp.src('src/img/**/*')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/img/'));
-	});
-
-});
-
-gulp.task('fonts', function(){
-
-	del('dist/fonts/**/*',function(){
-
-		gulp.src('src/fonts/**/*')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/fonts/'));
-
-		//FontAwesome Fonts
-		gulp.src('bower_components/components-font-awesome/fonts/*')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/fonts/'));
-
-		//Bootstrap Fonts
-		gulp.src('bower_components/bootstrap/dist/fonts/*')
-		.pipe(plumber())
-		.pipe(gulp.dest('dist/fonts/'));
-
-	});
-
-});
-
-//Moving your css files to your server folder
-gulp.task('css', function(){
-
-	del('dist/css/**/*',function(){
-
-		gulp.src('src/css/**/*')
-		.pipe(gulp.dest('dist/css/'));
-
-		//Bootstrap Stylesheets
-		gulp.src('bower_components/bootstrap/dist/css/*.min.css')
-		.pipe(gulp.dest('dist/css/'));
-
-		//FontAwesome Stylesheets
-		gulp.src('bower_components/components-font-awesome/css/*.min.css')
-		.pipe(gulp.dest('dist/css/'));
-
-	});
-
-});
-
-// Building your HTML pages using fileInclude package
-gulp.task('pages', function(){
-
-	//del('dist/**/*.html',function(){
-		gulp.src(['src/**/*.html','!src/snippets/*.html'])
-		.pipe(plumber())
-		.pipe(fileinclude({
-	      prefix: '@@',
-	      basepath: '@file'
-	    }))
-		.pipe(gulp.dest('./dist/'));
-	//});
-
-});
-
-// Proccessing your LESS stylesheets
-gulp.task('less',function(){
-
-	gulp.src('src/styles/less/*.less')
-	.pipe(plumber())
-	.pipe(sourcemaps.init())
-	.pipe(less({
-		paths: ['src/styles/less/theme']
-	}))
-	.pipe(sourcemaps.write())
-	.pipe(gulp.dest('dist/css'));
-
-});
-
-//Reloading Server
-gulp.task('reload',function(){
-	browserSync.reload();
-});
-
-//Watching for changes
-gulp.task('watch',function(){
-
+gulp.task('watch', function(){
 	browserSync.init({
-		 server: "./dist"
+		server: {
+			baseDir: folders.src,
+			routes: {
+        		"/bower_components": folders.bower
+    		}
+		}
 	});
 
-	gulp.watch(paths.js, ['js','reload']);
-	gulp.watch('src/img/**/*', ['images','reload']);
-	gulp.watch('src/fonts/**/*', ['fonts','reload']);
-	gulp.watch('src/css/**/*.css', ['css','less','reload']);
-	gulp.watch('src/**/*.html', ['pages','reload']);
-	gulp.watch(paths.less,['less','reload']);
+	var reload = browserSync.reload;
+	var stream = browserSync.stream;
 
+	gulp.watch("src/css/*.css",function(){
+		gulp.src(folders.src + "/css/*.css")
+			.pipe(browserSync.stream());
+	});
 
+	gulp.watch("src/**/*.+(png|jpg|jpeg|svg|gif|bmp)",reload);
+
+	gulp.watch("src/js/**/*.js", function(ev){
+		if(ev.type === "changed"){
+			reload();
+		}
+		else if (ev.type === "added" || ev.type === "deleted") {
+			return gulp.start("inject");
+		}
+	});
+
+	if(yargs.templates){
+		gulp.watch("src/+(pages|templates)/**/*.html").on("change",function(ev){
+			if(ev.type !== "deleted"){
+				runSequence('pages','inject',reload);
+			}
+			else{
+				var pathFromPages = path.relative(path.resolve('src/pages'), ev.path);
+				var srcPath = path.resolve('src');
+				var deletePath = path.join(srcPath,pathFromPages);
+				return del([deletePath],reload);
+			}
+		});
+	}
+	else{
+		gulp.watch(["src/**/*.html", "!src/+(pages|templates)/**/*.html"], reload);
+	}
+
+	gulp.watch(folders.less,['styles']);
+
+});
+
+gulp.task('bower',function(){
+	return gulp.src(folders.html)
+		.pipe(wiredep())
+		.pipe(gulp.dest(folders.src));
+});
+
+gulp.task('inject', ["bower"], function(){
+	return gulp.src(["src/**/*.html", "!src/+(pages|templates)/**/*.html"])
+		.pipe(gp.inject(gulp.src([folders.src + "/**/*.+(js|css)"],{read: false}),{relative: true}))
+		.pipe(gulp.dest(folders.src));
+});
+
+gulp.task('styles',function(){
+	return gulp.src(folders.src + "/styles/less/styles.less")
+	.pipe(gp.plumber())
+	.pipe(gp.less({
+		paths: [folders.less]
+	}))
+	.pipe(gulp.dest(folders.src+"/css/"));
+});
+
+gulp.task('pages',function(){
+	return gulp.src(folders.src + "/pages/**/*.html")
+		.pipe(gp.nunjucksRender({path: [folders.src + '/templates']}))
+		.pipe(gulp.dest(folders.src));
+});
+
+gulp.task('clean-dist', function(){
+	return gulp.src("./dist")
+		.pipe(gp.clean());
+});
+
+gulp.task('move-html', ['clean-dist'], function(){
+	return gulp.src(["./src/**/*.html", "!./src/+(pages|templates)/**/*.html"])
+		.pipe(gulp.dest("./dist/"));
+});
+
+gulp.task('move-js', ['move-html'], function(){
+	return gulp.src("./src/js/**/*.js")
+		.pipe(gp.concat("scripts.js"))
+		.pipe(gp.uglify())
+		.pipe(gulp.dest("./dist/js"));
+});
+
+gulp.task('move-css', ['move-js'], function(){
+	return gulp.src("./src/css/**/*.css")
+		.pipe(gp.concat("styles.css"))
+		.pipe(gp.cssmin())
+		.pipe(gulp.dest("./dist/css"));
+});
+
+gulp.task('move-vendors', ['move-css'], function(){
+	var jsFilter = gp.filter('**/*.js', {restore: true});
+	var cssFilter = gp.filter('**/*.css', {restore: true});
+	var fontsFilter = gp.filter('**/fonts/*', {restore: true});
+	return gulp.src('bower.json')
+		.pipe(gp.mainBowerFiles())
+		.pipe(jsFilter)
+		.pipe(gp.concat('vendors.js'))
+		.pipe(gp.uglify({preserveComments: "all"}))
+		.pipe(gulp.dest("./dist/js"))
+		.pipe(jsFilter.restore)
+		.pipe(cssFilter)
+		.pipe(gp.concat('vendors.css'))
+		.pipe(gp.cssmin())
+		.pipe(gulp.dest("./dist/css"))
+		.pipe(cssFilter.restore)
+		.pipe(fontsFilter)
+		.pipe(gp.flatten())
+		.pipe(gulp.dest("./dist/fonts"));
+});
+
+gulp.task('move-img', ['move-vendors'], function(){
+	return gulp.src(['./src/img/*'])
+		.pipe(gulp.dest('./dist/img'));
+});
+
+gulp.task('move-fonts', ['move-img'], function(){
+	return gulp.src(['./src/fonts/*'])
+		.pipe(gulp.dest('./dist/fonts'));
+});
+
+gulp.task('replace-bower', ['move-fonts'], function(){
+	return gulp.src("./dist/**/*.html")
+		.pipe(gp.replace(/(<!-- bower:js -->)([\s\S]*)(<!-- endBowerJs -->)/,""))
+		.pipe(gp.replace(/(<!-- bower:css -->)([\s\S]*)(<!-- endBowerCss -->)/,""))
+		.pipe(gulp.dest("./dist"));
+});
+
+gulp.task('build',['replace-bower'], function(){
+	return gulp.src("./dist/**/*.html")
+		.pipe(gp.inject(gulp.src(["./dist/**/vendors.+(js|css)", "./dist/**/*.+(js|css)"],{read: false}),{relative: true}))
+		.pipe(gulp.dest("./dist"));
 });

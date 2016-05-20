@@ -1,17 +1,26 @@
-@@include('./snippets/_doctype.html')
-<html class="no-js" lang=""> <!--<![endif]-->
-   @@include('./snippets/_head.html',{
-		  "title": "Home"
-	})
+<!DOCTYPE HTML>
+<html>
+   <head>
+   	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   	<title>Your Website</title>
+      <!-- bower:css -->
+      <link rel="stylesheet" href="../bower_components/normalize-css/normalize.css" />
+      <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.css" />
+      <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.css" />
+      <!-- endbower --><!-- endBowerCss -->
+      <!-- inject:css -->
+      <link rel="stylesheet" href="css/styles.css">
+      <!-- endinject -->
+   </head>
    <body>
-
-      @@include('./snippets/warning.html')
-
-      <!-- Your awesome page here -->
-      <h1>You can build your awesome page here :)</h1>
-
-      @@include('./snippets/_scripts.html')
-
+      <h1>
+         Hello World!
+      </h1>
+      <!-- bower:js -->
+      <script src="../bower_components/bootstrap/dist/js/bootstrap.js"></script>
+      <!-- endbower --><!-- endBowerJs -->
+      <!-- inject:js -->
+      <script src="js/main.js"></script>
+      <!-- endinject -->
    </body>
-
 </html>
