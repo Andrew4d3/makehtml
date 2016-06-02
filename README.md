@@ -33,6 +33,16 @@ $ cd makehtml
 $ npm install
 $ bower install
 ```
-* Start creating your awesome page ;)
+* Run gulp
+```
+$ gulp
+```
 
+And start creating your awesome page :)
 
+## Generate Dist Folder
+In order to get a dist folder you have to run:
+```
+$ gulp build
+```
+This command will generate a dist folder with all the code and dependecies used. All the files will be correctly mimified and concatenated so that they can run quickly on production. You can extract/copy this folder and paste it in any server container. It should work properly without depending on gulp nor nodejs.
