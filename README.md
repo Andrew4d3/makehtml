@@ -55,7 +55,7 @@ This boilerplate includes Nunjucks, which is a template engine to render HTML pa
  ```
  Now you can build your pages with nunjucks by using the src/pages and src/templates folders. Anytime you make changes at those paths, it will generate new html pages at src/, these are the ones run by the server.
  
- *WARNING*: Keep in mind that if you decide to use Nunjucks after starting building your pages without it. All HTML pages at src/ will be completely overwritten by the new pages generated using the template engine. So you may lose some (or all) code developed there. My advice here is: **If you started building without Nunjucks. DO NOT USE IT! Or you may lose precious work by doing so.**
+ *WARNING*: Keep in mind that if you decide to use Nunjucks after starting building your pages without it. All HTML pages at src/ will be completely overwritten by the new pages generated using the template engine. So you might lose some (or all) code developed there. My advice here is: **If you started building without Nunjucks. DO NOT USE IT! Or you might lose precious work by doing so.**
  
  [Check Nunjucks home site to learn how to use it](https://mozilla.github.io/nunjucks/)
  
