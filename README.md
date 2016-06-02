@@ -18,21 +18,21 @@ In order to use this boilerplate, you require to have NodeJS installed.
 
 ## How to use it?
 
-1. Install gulp and bower globally if you don't have them installed yet. Otherwise, skip to step 2. 
+* Install gulp and bower globally if you don't have them installed yet. Otherwise, skip to next step. 
 ```
 $ npm install gulp -g
 $ npm install bower -g
 ```
-2. Clone this repository.
+* Clone this repository.
 ```
 $ git clone https://github.com/Andrew4d3/makehtml
 $ cd makehtml
 ```
-3. Run bower and npm install
+* Run bower and npm install
 ```
 $ npm install
 $ bower install
 ```
-4. Start creating your awesome page ;)
+* Start creating your awesome page ;)
 
 
